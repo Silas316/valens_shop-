@@ -1,0 +1,11 @@
+{
+  "title": "Valens.shop",
+  "description": "This platform enables users to easily create and customize websites with a user-friendly interface, catering to individuals and businesses seeking an online presence.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
