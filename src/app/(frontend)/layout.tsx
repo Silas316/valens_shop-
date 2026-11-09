@@ -1,12 +1,20 @@
 import React from "react"
 import type { Metadata } from "next"
 import Script from "next/script"
+import { Inter } from "next/font/google"
 import { BodyCustomCode, renderHeadCustomCode } from "@/lib/make-custom-code"
 import {
   makeSiteSettings,
   sanitizeHtmlAttribute,
 } from "@/lib/make-site-settings"
 import "./styles.css"
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  display: "swap",
+  variable: "--font-inter",
+})
 
 const defaultTitle = "Valens Studios"
 const title = makeSiteSettings.title ?? defaultTitle
@@ -53,7 +61,7 @@ export default function RootLayout({
   const customScripts = makeSiteSettings.customScripts
 
   return (
-    <html lang={language}>
+    <html lang={language} className={inter.variable}>
       <head>
         {renderHeadCustomCode(customScripts?.headStart, "head-start")}
         {renderHeadCustomCode(customScripts?.headEnd, "head-end")}

@@ -35,6 +35,8 @@ const nextConfig: NextConfig = {
   experimental: {
     // Caps static build workers (~250-380 MB each) to lower `next build` peak memory
     cpus: 2,
+    // Lets src/app/global-not-found.tsx render the 404 for URLs that match no route.
+    globalNotFound: true,
     // Payload Admin uses Next Server Actions. In the Make preview proxy, the
     // browser origin is the public sandbox host while `x-forwarded-host` points
     // at the local dev server. Allow only that exact platform-provisioned host.

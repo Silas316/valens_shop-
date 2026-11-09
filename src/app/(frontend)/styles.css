@@ -1,8 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap');
 @import 'tailwindcss';
 
 :root {
-  font-family: 'Inter', Arial, sans-serif;
+  font-family: var(--font-inter), Arial, sans-serif;
   color: #f4f4f0;
   background: #0a0a0a;
   font-synthesis: none;
@@ -36,8 +35,6 @@ button:focus-visible, a:focus-visible, select:focus-visible { outline: 1px solid
 .selectors { gap: 8px; }
 .site-header a, .site-header button { transition: opacity .2s; }
 .site-header a:hover, .site-header button:hover { opacity: .55; }
-.logo { width: 42px; height: 52px; overflow: hidden; }
-.logo img { width: 64px; height: 79px; max-width: none; object-fit: cover; transform: translateX(-11px); }
 .selectors select {
   appearance: none; border: 0; border-bottom: 1px solid #ffffff4d; padding: 5px 16px 5px 2px;
   background: transparent; color: inherit; font: inherit; font-size: 9px; outline: none;
@@ -299,8 +296,6 @@ footer { min-height: 62vh; padding: 48px 22px 18px; display: flex; flex-directio
   .desktop-nav, .desktop-only { display: none; }
   .mobile-only { display: block; }
   .site-header { height: 58px; padding: 0 16px; }
-  .logo { width: 36px; height: 44px; }
-  .logo img { width: 55px; height: 68px; transform: translateX(-9px); }
   .header-tools { gap: 0; }
   .product-grid { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 54px 14px; }
   .panel-products { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 48px 12px; }

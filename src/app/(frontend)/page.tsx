@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { useEffect, useMemo, useState } from "react"
 
 const products = [
@@ -106,6 +107,8 @@ const copy = {
   },
 }
 
+const STORAGE_KEY = "valens-shop"
+
 const socialLinks: SocialLink[] = []
 
 function Arrow() {
@@ -121,6 +124,7 @@ export default function HomePage() {
   const [contentPanel, setContentPanel] = useState<ContentPanel | null>(null)
   const [productSizes, setProductSizes] = useState<Record<number, Size>>({})
   const [cart, setCart] = useState<CartItem[]>([])
+  const [hydrated, setHydrated] = useState(false)
   const t = copy[language]
   const unitPrice = currency === "XOF" ? 12000 : 35
 
@@ -171,6 +175,65 @@ export default function HomePage() {
       document.body.style.overflow = ""
     }
   }, [menuOpen, cartOpen, contentPanel])
+
+  useEffect(() => {
+    if (!menuOpen && !cartOpen && !contentPanel) return
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return
+      setMenuOpen(false)
+      setCartOpen(false)
+      setContentPanel(null)
+    }
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [menuOpen, cartOpen, contentPanel])
+
+  // Restore saved preferences and cart after mount (kept out of the first
+  // render so server and client markup match).
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null")
+      if (saved && typeof saved === "object") {
+        if (saved.language === "fr" || saved.language === "en")
+          setLanguage(saved.language)
+        if (["XOF", "EUR", "USD"].includes(saved.currency))
+          setCurrency(saved.currency)
+        if (saved.mode === "light" || saved.mode === "dark")
+          setMode(saved.mode)
+        if (Array.isArray(saved.cart)) {
+          setCart(
+            saved.cart.filter(
+              (item: CartItem) =>
+                item &&
+                typeof item.key === "string" &&
+                Number.isInteger(item.productIndex) &&
+                item.productIndex >= 0 &&
+                item.productIndex < products.length &&
+                (item.color === "light" || item.color === "dark") &&
+                (sizes as readonly string[]).includes(item.size) &&
+                Number.isInteger(item.quantity) &&
+                item.quantity > 0,
+            ),
+          )
+        }
+      }
+    } catch {
+      // Storage unavailable or corrupted: start with defaults.
+    }
+    setHydrated(true)
+  }, [])
+
+  useEffect(() => {
+    if (!hydrated) return
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ language, currency, mode, cart }),
+      )
+    } catch {
+      // Ignore storage errors (private mode, quota).
+    }
+  }, [hydrated, language, currency, mode, cart])
 
   const addToCart = (productIndex: number) => {
     const size = productSizes[productIndex] ?? "M"
@@ -227,8 +290,19 @@ export default function HomePage() {
             </button>
           ))}
         </nav>
-        <a className="logo" href="#top" aria-label="Valens">
-          <img src="/brand/valens-logo.svg" alt="" />
+        <a
+          className="block h-12 w-10 md:h-15 md:w-12"
+          href="#top"
+          aria-label="Valens"
+        >
+          <Image
+            className="h-full w-full object-contain"
+            src="/brand/valens-logo.svg"
+            alt=""
+            width={64}
+            height={79}
+            unoptimized
+          />
         </a>
         <div className="header-tools">
           <div className="selectors desktop-only">
@@ -273,11 +347,12 @@ export default function HomePage() {
       <aside
         className={`mobile-menu ${menuOpen ? "open" : ""}`}
         aria-hidden={!menuOpen}
+        inert={!menuOpen}
       >
         <button className="panel-close" onClick={() => setMenuOpen(false)}>
           {t.close}
         </button>
-        <img src="/brand/valens-logo.svg" alt="Valens" />
+        <Image src="/brand/valens-logo.svg" alt="Valens" width={72} height={89} unoptimized />
         <nav>
           {links.map(([label, panel]) => (
             <button onClick={() => openPanel(panel)} key={panel}>
@@ -309,6 +384,7 @@ export default function HomePage() {
       <aside
         className={`content-panel ${contentPanel ? "open" : ""}`}
         aria-hidden={!contentPanel}
+        inert={!contentPanel}
       >
         <div className="content-panel-head">
           <span>Valens Studios</span>
@@ -341,7 +417,7 @@ export default function HomePage() {
                 const size = productSizes[index] ?? "M"
                 return (
                   <article key={name}>
-                    <img src={image} alt={name} />
+                    <Image src={image} alt={name} width={1600} height={2000} unoptimized />
                     <div>
                       <h3>{name}</h3>
                       <p>{price(unitPrice)}</p>
@@ -461,6 +537,7 @@ export default function HomePage() {
       <aside
         className={`cart-drawer ${cartOpen ? "open" : ""}`}
         aria-hidden={!cartOpen}
+        inert={!cartOpen}
       >
         <div className="cart-head">
           <h2>
@@ -477,7 +554,7 @@ export default function HomePage() {
               const image = item.color === "dark" ? product[2] : product[1]
               return (
                 <article className="cart-item" key={item.key}>
-                  <img src={image} alt="" />
+                  <Image src={image} alt="" width={1600} height={2000} unoptimized />
                   <div>
                     <div className="cart-item-title">
                       <h3>{item.name}</h3>
@@ -534,7 +611,13 @@ export default function HomePage() {
             media="(min-width: 761px)"
             srcSet="/brand/web/hero-desktop.webp"
           />
-          <img src="/brand/web/hero-mobile.webp" alt="Valens collection 2026" />
+          <Image unoptimized
+            src="/brand/web/hero-mobile.webp"
+            alt="Valens collection 2026"
+            width={1200}
+            height={1600}
+            fetchPriority="high"
+          />
         </picture>
         <div className="shade" />
         <div className="hero-copy">
@@ -552,7 +635,7 @@ export default function HomePage() {
       </section>
 
       <section className="mode-visual">
-        <img
+        <Image unoptimized
           key={mode}
           src={
             mode === "light" ? "/brand/web/light.webp" : "/brand/web/dark.webp"
@@ -562,6 +645,8 @@ export default function HomePage() {
               ? "Collection Valens claire"
               : "Collection Valens sombre"
           }
+          width={1600}
+          height={2000}
         />
         <div>
           <span>{mode === "light" ? t.light : t.dark}</span>
@@ -610,10 +695,12 @@ export default function HomePage() {
                   className="product-image"
                   onClick={() => setMode(mode === "light" ? "dark" : "light")}
                 >
-                  <img
+                  <Image unoptimized
                     key={`${name}-${mode}`}
                     src={image}
                     alt={`${name} — ${mode === "light" ? t.light : t.dark}`}
+                    width={1600}
+                    height={2000}
                   />
                 </button>
                 <div className="product-meta">
@@ -660,7 +747,12 @@ export default function HomePage() {
             media="(min-width: 761px)"
             srcSet="/brand/web/campaign-desktop.webp"
           />
-          <img src="/brand/web/campaign-mobile.webp" alt="Campagne Valens" />
+          <Image unoptimized
+            src="/brand/web/campaign-mobile.webp"
+            alt="Campagne Valens"
+            width={1200}
+            height={1600}
+          />
         </picture>
         <div>
           <h2>{t.campaign}</h2>
@@ -672,7 +764,7 @@ export default function HomePage() {
 
       <footer id="contact">
         <div className="footer-mark">
-          <img src="/brand/valens-logo-footer.svg" alt="" />
+          <Image src="/brand/valens-logo-footer.svg" alt="" width={88} height={108} unoptimized />
           <strong>VALENS</strong>
         </div>
         <div className="footer-links">
